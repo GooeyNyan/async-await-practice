@@ -1,7 +1,12 @@
+interface queueItem {
+  event: string;
+  args: any[];
+}
+
 export default class EventHub {
   private listeners: Map<string, Function>;
   private isHanging: boolean;
-  private queue: string[];
+  private queue: { event: string; args: any[] }[];
 
   public constructor() {
     this.listeners = new Map();
@@ -23,19 +28,20 @@ export default class EventHub {
   /**
    * process the event passed.
    * @param event the event should be process
-   * @param arg the arguments should be pass to the method
+   * @param args the arguments should be pass to the method
    */
-  public async emit(event: string, ...arg) {
+  public async emit(event: string, ...args) {
     if (this.shouldEmit()) {
       this.hangOn();
       const method = this.listeners.get(event);
-      await method(...arg);
+      await method(...args);
       this.hangOff();
       if (this.hasMoreEventInQueue()) {
-        this.emit(this.getEventFromQueue());
+        const eventItem = this.getEventFromQueue();
+        this.emit(eventItem.event, ...eventItem.args);
       }
     } else {
-      this.queue.push(event);
+      this.queue.push({ event, args });
     }
   }
 
@@ -70,8 +76,8 @@ export default class EventHub {
    * @param method
    */
   private methodWrapper(method) {
-    return async (...arg) => {
-      await method(...arg);
+    return async (...args) => {
+      await method(...args);
       return Promise.resolve("");
     };
   }
@@ -87,7 +93,7 @@ export default class EventHub {
     return !!this.queue.length;
   }
 
-  private getEventFromQueue(): string {
+  private getEventFromQueue(): queueItem {
     return this.queue.shift();
   }
 }

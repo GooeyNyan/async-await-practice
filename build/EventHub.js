@@ -19,20 +19,21 @@ class EventHub {
     /**
      * process the event passed.
      * @param event the event should be process
-     * @param arg the arguments should be pass to the method
+     * @param args the arguments should be pass to the method
      */
-    async emit(event, ...arg) {
+    async emit(event, ...args) {
         if (this.shouldEmit()) {
             this.hangOn();
             const method = this.listeners.get(event);
-            await method(...arg);
+            await method(...args);
             this.hangOff();
             if (this.hasMoreEventInQueue()) {
-                this.emit(this.getEventFromQueue());
+                const eventItem = this.getEventFromQueue();
+                this.emit(eventItem.event, ...eventItem.args);
             }
         }
         else {
-            this.queue.push(event);
+            this.queue.push({ event, args });
         }
     }
     /**
@@ -62,8 +63,8 @@ class EventHub {
      * @param method
      */
     methodWrapper(method) {
-        return async (...arg) => {
-            await method(...arg);
+        return async (...args) => {
+            await method(...args);
             return Promise.resolve("");
         };
     }

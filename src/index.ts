@@ -16,12 +16,14 @@ const getHamburger = () => {
   });
 };
 
-const handleClickOnButtonA = async () => {
+const handleClickOnButtonA = async (...arg) => {
   inputEl.value = await getCoffee();
+  console.log(arg);
 };
 
-const handleClickOnButtonB = async () => {
+const handleClickOnButtonB = async (...arg) => {
   inputEl.value = await getHamburger();
+  console.log(arg);
 };
 
 const eventHub = new EventHub();
@@ -29,8 +31,8 @@ eventHub.on("clickOnA", handleClickOnButtonA);
 eventHub.on("clickOnB", handleClickOnButtonB);
 
 buttonA.addEventListener("click", () => {
-  eventHub.emit("clickOnA");
+  eventHub.emit("clickOnA", `dasd`, `sadf`);
 });
 buttonB.addEventListener("click", () => {
-  eventHub.emit("clickOnB");
+  eventHub.emit("clickOnB", 123, 312);
 });
